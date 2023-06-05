@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// The admin table is going to have a default admin. This admin is going to always be there (altough you can delete it directly)
+// You will have the option to disable the login form and access using SSO, but again, this will not delete the default admin
+// It just means that is going to be disabled
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([username])
+}
+
+model AdminSettings {
+  id                  String  @id @default(uuid())
+  microsoftSSO        Boolean // If true, then you will be able to access the admin panel using SSO
+  credentialsProvider Boolean // If true, then you will have the option to log in without SSO
+
+  // If true, then you will only be able to access the admin panel through the server (localhost)
+  ipRestricted Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MqttConnector {
+  id        String   @id @default(uuid())
+  url       String   @unique
+  port      Int
+  portType  String //WebSocket or TCP
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //TODO: consider adding more than one url
+
+  @@index([url])
+}
