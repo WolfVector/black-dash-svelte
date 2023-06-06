@@ -26,7 +26,7 @@
       </div>
       <div class='mt-2 p-2 text-slate-700 hover:bg-slate-100 rounded-sm font-medium flex gap-1'>
         <img class='self-center' src={sub} alt='Home icon' width=20 height=20 />
-        <a href="#" class='hover:cursor-pointer inline-block w-full'>MQTT subscribers</a>
+        <a href="/settings/mqtt-sub" class='hover:cursor-pointer inline-block w-full'>MQTT subscribers</a>
       </div>
       <div class='mt-2 p-2 text-slate-700 hover:bg-slate-100 rounded-sm font-medium flex gap-1'>
         <img class='self-center' src={conf} alt='Home icon' width=20 height=20 />

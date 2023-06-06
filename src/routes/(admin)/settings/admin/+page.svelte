@@ -1,7 +1,7 @@
 <script>
   import Modal from '$lib/components/Modal.svelte';
-    import { handleAsyncReq } from '$lib/js/makeRequest.svelte';
-    import { Toasts, toast } from 'svoast';
+  import { handleAsyncReq } from '$lib/js/makeRequest.svelte';
+  import { Toasts, toast } from 'svoast';
 
   export let data
   let deleteModal = false

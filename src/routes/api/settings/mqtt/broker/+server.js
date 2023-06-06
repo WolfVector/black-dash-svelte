@@ -30,7 +30,7 @@ export async function POST(event) {
   } catch (error) {
     return json({ ok: false, messages: error.errors })
   }
-
+  
   try {
     await prisma.mqttConnector.upsert({
       create: {

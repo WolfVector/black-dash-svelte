@@ -44,6 +44,36 @@ model MqttConnector {
   updatedAt DateTime @updatedAt
 
   //TODO: consider adding more than one url
-
   @@index([url])
+}
+
+// One-To-Many relationship: a topic can have many fields
+// topic/string: { temp: 21, humidity: 40, ... }
+model MqttTopic {
+  id        String       @id @default(uuid())
+  title     String
+  topic     String       @unique
+  keyFields MqttFields[]
+  //keyField   MqttFields[] @relation("keyField")
+  //fieldTitle MqttFields[] @relation("fieldTitle")
+  //fieldUnits MqttFields[] @relation("fieldUnits")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([topic])
+}
+
+// keyField, fieldTitle, and fieldUnits are not stored in the database, they are just use by prisma client to make the connections.
+// topicId, the foreign key, does gets stored in the database.
+
+model MqttFields {
+  id         String    @id @default(uuid())
+  keyField   String
+  fieldTitle String
+  fieldUnits String
+  //keyField   MqttTopic @relation("keyField", fields: [topicId], references: [id])
+  //fieldTitle MqttTopic @relation("fieldTitle", fields: [topicId], references: [id])
+  //fieldUnits MqttTopic @relation("fieldUnits", fields: [topicId], references: [id])
+  topic      MqttTopic @relation(fields: [topicId], references: [id])
+  topicId    String
 }
