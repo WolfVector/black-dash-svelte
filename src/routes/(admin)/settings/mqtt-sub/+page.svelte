@@ -20,7 +20,30 @@
   }
 
   async function confirmDelete() {
-    console.log("confirm")
+    deleteModal = false
+
+    const id = toast.info("Wait, deleting admin...", { infinite: true })
+
+    const res = await handleAsyncReq("/api/settings/mqtt/sub/delete", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        topic: topicToDelete
+      }),
+    })
+
+    toast.removeById(id)
+
+    if(res === false) toast.error("There was some problem on the server", { duration: 3000 });
+    else if(!res.ok) toast.error(res.messages[0], { duration: 3000 });
+    else {
+      data.topics = data.topics.filter(topic => topic.topic !== topicToDelete)
+      toast.success("Topic deleted", { duration: 3000 })
+    }
+
+    topicToDelete = ''
   }
 
 </script>

@@ -25,8 +25,6 @@ export async function POST(event) {
     return { keyField: key, fieldTitle: value.title, fieldUnits: value.units }
   })
 
-  //console.log(mqttFields)
-  
   try {
     await prisma.mqttTopic.create({
       data: {

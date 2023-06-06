@@ -18,7 +18,7 @@ client.connect("localhost", 1883)
 while True:
     lab_temperatures = round(random.uniform(16,33), 2)
     value = round(random.uniform(16,33), 2)
-    info = client.publish(topic="u8-mqtt/laboratories", payload=json.dumps({ "temp": lab_temperatures, "humi": value })) #publish
+    info = client.publish(topic="u8-mqtt/room2", payload=json.dumps({ "temp": lab_temperatures, "humi": value })) #publish
     info.wait_for_publish()
 
     time.sleep(1)

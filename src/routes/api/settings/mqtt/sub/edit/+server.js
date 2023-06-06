@@ -23,12 +23,23 @@ export async function POST(event) {
 
   if(!body.oldTopic) return json({ ok: false, messages: ["There was a problem while validating the data"] })
 
-  const mqttFields = Object.entries(body.keysTotCreate).map(([key, value]) => {
-    return { keyField: key, fieldTitle: value.title, fieldUnits: value.units }
+  const updateFields = []
+  const createFields = []
+
+  Object.entries(body.keyFields).forEach(([key, value]) => {
+    if(value.id) updateFields.push({ keyField: key, fieldTitle: value.title, fieldUnits: value.units, id: value.id })
+    else createFields.push({ keyField: key, fieldTitle: value.title, fieldUnits: value.units })
   })
+  
+  console.log(updateFields)
+  console.log(createFields)
+
+  /*const mqttCreateFields = Object.entries(body.keysTotCreate).map(([key, value]) => {
+    return { keyField: key, fieldTitle: value.title, fieldUnits: value.units }
+  })*/
 
   try {
-    await prisma.mqttTopic.update({
+    const topics = await prisma.mqttTopic.update({
       where: {
         id: body.id
       },
@@ -36,29 +47,38 @@ export async function POST(event) {
         title: topicParsed.title,
         topic: topicParsed.topic,
         keyFields: {
-          create: mqttFields    
+          create: createFields,
         }
-      }
-    })
-
-    await prisma.mqttTopic.update({
-      where: {
-        id: body.id
       },
-      data: {
-        keyFields: {
-          deleteMany: body.deleteKeys
-        }
+      include: {
+        keyFields: true
       }
     })
 
+    await prisma.$transaction(updateFields.map(row => {
+      return prisma.mqttTopic.update({
+        where: {
+          id: body.id
+        },
+        data: {
+          keyFields: {
+            update: {
+              where: {
+                id: row.id
+              },
+              data: {
+                keyField: row.keyField,
+                fieldTitle: row.fieldTitle,
+                fieldUnits: row.fieldUnits
+              }
+            }
+          }
+        }
+      })
+    }))
+
+    return json({ ok: true, keyFields: topics.keyFields })
   } catch (error) {
     return json({ ok: false, message: ["There was a problem while updating the topic and title"] })   
   }
-
-  console.log("keyFields", body.keyFields)
-  console.log("keysToDelete", body.deleteKeys)
-  console.log("keyToCreate",body.keysTotCreate)
-
-  return json({ ok: true })
 }

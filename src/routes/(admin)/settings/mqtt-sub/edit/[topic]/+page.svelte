@@ -4,6 +4,7 @@
   import { handleAsyncReq } from '$lib/js/makeRequest.svelte';
   import { onMount } from 'svelte';
   import { Toasts, toast } from 'svoast';
+  import Modal from '$lib/components/Modal.svelte';
   import mqtt_client from 'u8-mqtt'
 
   export let data
@@ -13,15 +14,15 @@
   let oldTopic = topic
   let mqttData = {}
 
-  let keyFields = {}
-  let keysToDelete = new Set()
-  let keysTotCreate = {}
-  /*let keyFields = !data.topics.keyFields.length ? {} : (
-    data.topics.keyFields
-  )*/
+  let keyFields = data.topics.keyFields
+  
   let spinner = false
   let messages = null
   let type = null
+
+  let deleteModal = false
+  let fieldToDelete = ''
+  let keyToDelete = null
 
   let my_mqtt = null
 
@@ -40,14 +41,13 @@
           async (pkt, params, ctx) => {
             let temp = await pkt.json()
             
-            //if(Object.keys(keyFields).length === 0) {
-              Object.keys(temp).forEach(key => {
-                if(!keyFields[key]) {
-                  if(data.topics.keyFields[key]) keyFields[key] = { title: data.topics.keyFields[key].title, units: data.topics.keyFields[key].units, id: data.topics.keyFields[key].id }
-                  else keyFields[key] = { title: '', units: '' }
-                }
-              })
-            //}
+            Object.keys(temp).forEach(key => {
+              if(!keyFields[key]) {
+                keyFields[key] = { title: '', units: '' }
+              }
+              keyFields[key].value = temp[key]
+            })
+
             mqttData = temp
           })
       }
@@ -56,61 +56,29 @@
 
   function handleSubscribe() {
     if(oldTopic) my_mqtt.unsubscribe(oldTopic)
-    keyFields = {}
+    keyFields = data.topics.keyFields
     mqttData = {}
-
-    console.log("ffff")
 
     my_mqtt.subscribe_topic(
       topic,
       async (pkt, params, ctx) => {
         let temp = await pkt.json()
 
-        console.log(mqttData)
-        console.log(keyFields)
-        //if(Object.keys(keyFields).length === 0) {
-          Object.keys(temp).forEach(key => {
-            if(!keyFields[key]) {
-              console.log("gggg")
-              if(data.topics.keyFields[key]) keyFields[key] = { title: data.topics.keyFields[key].title, units: data.topics.keyFields[key].units, id: data.topics.keyFields[key].id }
-              else keyFields[key] = { title: '', units: '' }
-              console.log("hhhh")
-            }
-          })
-        //}
+        Object.keys(temp).forEach(key => {
+          if(!keyFields[key]) {
+            keyFields[key] = { title: '', units: '' }
+          }
+          keyFields[key].value = temp[key]
+        })
         mqttData = temp
-        //console.log('topic packet', params, pkt, pkt.json())
     })
+
+    toast.success("Susbscribed", { duration: 3000 })
 
     oldTopic = topic
   }
 
   async function handleMqttSave() {
-    Object.keys(data.topics.keyFields).forEach(key => {
-      if(!mqttData[key]) {
-        keysToDelete.add(data.topics.keyFields[key].id)
-        delete keyFields[key]
-      }
-
-      if(keyFields[key] && keysToDelete.has(data.topics.keyFields[key].id)) keysToDelete.delete(data.topics.keyFields[key].id)
-    })
-
-    Object.keys(keyFields).forEach(key => {
-      if(!mqttData[key]) delete keyFields[key]
-      if(!keyFields[key].id) {
-        keysTotCreate[key] = JSON.parse(JSON.stringify(keyFields[key]));
-        delete keyFields[key]
-      }
-    })
-
-    let deleteKeys = []
-    keysToDelete.forEach(key => {
-      deleteKeys.push({ id: key })
-    })
-
-    console.log(keyFields)
-    console.log(keysToDelete)
-    console.log(keysTotCreate)
     spinner = true
     messages = null
 
@@ -125,8 +93,6 @@
         topic,
         oldTopic: originalTopic,
         keyFields,
-        deleteKeys,
-        keysTotCreate
       }),
     })
 
@@ -135,9 +101,61 @@
       type = "error"
       messages = res.messages
     }
-    else toast.success("Topic saved", { duration: 3000 })
+    else {
+      toast.success("Topic saved", { duration: 3000 })
+      
+      res.keyFields.forEach(row => {
+        let key = row.keyField
+        if(keyFields[key] && !keyFields[key].id) {
+          keyFields[key].id = row.id
+        }
+      })
+
+      console.log(keyFields)
+    }
 
     spinner = false
+  }
+
+  function handleFieldDelete(idField, key) {
+    deleteModal = true
+    fieldToDelete = idField
+    keyToDelete = key
+  }
+
+  function closeHandler() {
+    deleteModal = false
+    fieldToDelete = ''
+    keyToDelete = null
+  }
+  
+  async function confirmDelete() {
+    deleteModal = false
+
+    const id = toast.info("Wait, deleting field...", { infinite: true })
+
+    const res = await handleAsyncReq("/api/settings/mqtt/sub/field/delete", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        topic: data.topics.id,
+        field: fieldToDelete
+      }),
+    })
+
+    toast.removeById(id)
+
+    if(res === false) toast.error("There was some problem on the server", { duration: 3000 });
+    else if(!res.ok) toast.error(res.messages[0], { duration: 3000 });
+    else {
+      delete keyFields[keyToDelete]
+      toast.success("Field deleted", { duration: 3000 })
+    }
+
+    fieldToDelete = ''
+    keyToDelete = null
   }
 
   console.log(data.topics)
@@ -167,15 +185,19 @@
           <th class="font-medium py-2 text-gray-500">Title field</th>
           <th class="font-medium py-2 text-gray-500">Value</th>
           <th class="font-medium py-2 text-gray-500">Units</th>
+          <th class="font-medium py-2 text-gray-500">Delete</th>
         </tr>
       </thead>
       <tbody class="text-sm divide-y divide-gray-200">
-        {#each Object.entries(mqttData) as [key, value]}
+        {#each Object.entries(keyFields) as [key, value]}
           <tr class="odd:bg-white even:bg-gray-50">
             <td class="px-2 py-2 bg-slate-300">{ key }</td>
             <td class="py-2 align-middle text-center"><input bind:value={keyFields[key].title} type="text" class="border border-slate-300 rounded-sm p-2 font-medium focus:outline-none" /></td>
-            <td class="py-2 px-1 align-middle text-center bg-slate-300">{ value }</td>
+            <td class="py-2 px-1 align-middle text-center bg-slate-300">{ keyFields[key].value || '' }</td>
             <td class="py-2 align-middle text-center"><input bind:value={keyFields[key].units} type="text" class="border border-slate-300 rounded-sm p-2 font-medium focus:outline-none" /></td>
+            {#if keyFields[key].id }
+              <td class="py-3 align-middle text-center"> <button on:click={() => handleFieldDelete(keyFields[key].id, key)} class="px-2 py-1 rounded-md bg-red-400 text-white">Delete</button> </td>
+            {/if}
           </tr>
         {/each}
       </tbody>
@@ -193,3 +215,4 @@
     <RectAlert {messages} {type} />
   {/if}
 </div>
+<Modal yesHandler={confirmDelete} closeHandler={closeHandler} isOpen={deleteModal}  />

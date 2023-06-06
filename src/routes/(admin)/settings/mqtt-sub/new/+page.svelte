@@ -13,9 +13,7 @@
   let mqttData = {}
 
   let keyFields = {}
-  /*let keyFields = !data.topics.keyFields.length ? {} : (
-    data.topics.keyFields
-  )*/
+
   let spinner = false
   let messages = null
   let type = null
@@ -42,32 +40,24 @@
       async (pkt, params, ctx) => {
         mqttData = await pkt.json()
 
-        //if(Object.keys(keyFields).length === 0) {
-          Object.keys(mqttData).forEach(key => {
-            if(!keyFields[key]) {
-              keyFields[key] = { title: '', units: '' }
-            }
-          })
-        //}
-
-        //console.log('topic packet', params, pkt, pkt.json())
+        Object.keys(mqttData).forEach(key => {
+          if(!keyFields[key]) {
+            keyFields[key] = { title: '', units: '' }
+          }
+        })
     })
+
+    toast.success("Susbscribed", { duration: 3000 })
 
     oldTopic = topic
   }
 
   async function handleMqttSave() {
-    Object.keys(keyFields).forEach(key => {
-      if(!mqttData[key]) {
-        delete keyFields[key]
-      }
-    })
-
     console.log(keyFields)
     spinner = true
     messages = null
 
-    /*const res = await handleAsyncReq("/api/settings/mqtt/sub/", {
+    const res = await handleAsyncReq("/api/settings/mqtt/sub/", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
@@ -84,7 +74,7 @@
       type = "error"
       messages = res.messages
     }
-    else toast.success("Topic saved", { duration: 3000 })*/
+    else toast.success("Topic saved", { duration: 3000 })
 
     spinner = false
   }

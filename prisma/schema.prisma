@@ -63,7 +63,7 @@ model MqttTopic {
   @@index([topic])
 }
 
-// keyField, fieldTitle, and fieldUnits are not stored in the database, they are just use by prisma client to make the connections.
+// In the model below, "topic" is not stored in the database, it is just use by prisma client to make the connections.
 // topicId, the foreign key, does gets stored in the database.
 
 model MqttFields {
@@ -71,9 +71,6 @@ model MqttFields {
   keyField   String
   fieldTitle String
   fieldUnits String
-  //keyField   MqttTopic @relation("keyField", fields: [topicId], references: [id])
-  //fieldTitle MqttTopic @relation("fieldTitle", fields: [topicId], references: [id])
-  //fieldUnits MqttTopic @relation("fieldUnits", fields: [topicId], references: [id])
-  topic      MqttTopic @relation(fields: [topicId], references: [id])
+  topic      MqttTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId    String
 }
