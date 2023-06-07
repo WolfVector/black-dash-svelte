@@ -12,7 +12,7 @@ def get_lab_temperatures():
     
     return array
 
-client = mqtt.Client("PIC")
+client = mqtt.Client("PIC1")
 client.connect("localhost", 1883)
 
 while True:

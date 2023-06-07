@@ -12,13 +12,13 @@ def get_lab_temperatures():
     
     return array
 
-client = mqtt.Client("PIC2")
+client = mqtt.Client("PIC4")
 client.connect("localhost", 1883)
 
 while True:
-    lab_temperatures = round(random.uniform(12,43), 2)
+    lab_temperatures = round(random.uniform(80,95), 0)
     value = round(random.uniform(12,43), 2)
-    info = client.publish(topic="u8-mqtt/room2", payload=json.dumps({ "temp": lab_temperatures, "humi": value })) #publish
+    info = client.publish(topic="u8-mqtt/room4", payload=json.dumps({ "noise": lab_temperatures, "temp": value })) #publish
     info.wait_for_publish()
 
     time.sleep(1)

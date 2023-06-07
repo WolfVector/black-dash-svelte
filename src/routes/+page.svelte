@@ -1,11 +1,15 @@
 <script>
   import { onMount } from "svelte";
+  import { page } from "$app/stores"
   import TopBar from "./TopBar.svelte";
   import mqtt_client from 'u8-mqtt'
 
   export let data
 
+  let name = $page.data.session.user.name
   let my_mqtt = null
+  let topicList = [] // To keep the order of the topics
+  let topicsObject = {} // To save the data 
 
   onMount(async () => {
     if(data.broker !== "no-mqtt") {
@@ -16,11 +20,40 @@
 
       await my_mqtt.connect()
 
-      my_mqtt.subscribe_topic(
-      'u8-mqtt/*',
-      (pkt, params, ctx) => {
-        console.log('topic packet', params, pkt, pkt.json())
-      })
+      data.topics.forEach(function(topic) {
+        topicList.push(topic.topic) // Add the topic to the order list
+        topicsObject[topic.topic] = { titleRoom: topic.title , activated: true, data: {} } // Create an object for the topic
+        let selfFields = new Set()
+        topic.keyFields.forEach(obj => {
+          topicsObject[topic.topic].data[obj.keyField] = {}
+          topicsObject[topic.topic].data[obj.keyField].title = obj.fieldTitle
+          topicsObject[topic.topic].data[obj.keyField].units = obj.fieldUnits
+          selfFields.add(obj.keyField)
+        });
+
+        let idInterval = setTimeout(function() {
+          topicsObject[topic.topic].activated = false
+        }, 180000) // 180000 = 3 minutos
+
+        my_mqtt.subscribe_topic(
+        topic.topic,
+        async (pkt, params, ctx) => {
+          clearTimeout(idInterval)
+          let mqttData = await pkt.json()
+          
+          Object.keys(mqttData).forEach(key => {
+            if(selfFields.has(key))  {
+              topicsObject[pkt.topic].data[key].value = mqttData[key] 
+              topicsObject[pkt.topic].activated = true
+            }
+          })
+
+          idInterval = setTimeout(function() {
+            topicsObject[pkt.topic].activated = false
+          }, 180000) // 180000 = 3 minutos
+        
+        })
+      });
     }
   })
 
@@ -29,85 +62,30 @@
 
 <div class='flex flex-col'>
   <TopBar title="Black Dash" />
-  <div class='grow mt-24'>
+  <div class="mt-8 flex justify-end">
+    <span class="text-slate-700 font-medium text-sm">{ name }</span>
+  </div>
+  <div class='grow mt-8'>
     <div class='grid grid-cols-4 gap-x-10 gap-y-10'>
-      <div class='bg-slate-200/70 rounded-md p-4'>
-        <div class='grid grid-cols-2 font-semibold'>
-          <div>Temperature:</div>
-          <div >26.5 °C</div>
-
-          <div>Humidity:</div>
-          <div >40</div>
-        </div>
-
-        <div class='mt-2 flex justify-between text-xs'>
-          <div class='text-slate-400'>
-            Room 1
+      {#each topicList as topicKey}
+        <div class='bg-slate-200/70 rounded-md p-4'>
+          <div class='grid grid-cols-2 font-semibold'>
+            {#each Object.keys(topicsObject[topicKey].data) as key }
+              <div>{ topicsObject[topicKey].data[key].title }</div>
+              <div >{ topicsObject[topicKey].data[key].value || '' } { topicsObject[topicKey].data[key].units }</div>
+            {/each}
           </div>
-          <div class='text-green-400'>
-            Sensor activated
-          </div>
-        </div>
-      </div>
-      <div class='bg-slate-200/70 rounded-md p-4'>
-        <div class='grid grid-cols-2 font-semibold'>
-          <div>Temperature:</div>
-          <div >24.5 °C</div>
 
-          <div>Humidity:</div>
-          <div >30</div>
-        </div>
-
-        <div class='mt-2 flex justify-between text-xs'>
-          <div class='text-slate-400'>
-            Room 2
-          </div>
-          <div class='text-red-400'>
-            Sensor desactivated
+          <div class='mt-2 flex justify-between text-xs'>
+            <div class='text-slate-400'>
+              { topicsObject[topicKey].titleRoom }
+            </div>
+            <div class='{topicsObject[topicKey].activated ? "text-green-400" : "text-red-400"}'>
+              Sensor { topicsObject[topicKey].activated ? "activated" : "desactivated" }
+            </div>
           </div>
         </div>
-      </div>
-      <div class='bg-slate-200/70 rounded-md p-4'>3</div>
-      <div class='bg-slate-200/70 rounded-md p-4'>4</div>
-
-      <div class='bg-red-300 rounded-md p-4'>
-        <div class='grid grid-cols-2 font-semibold'>
-          <div>Temperature:</div>
-          <div >29.3 °C</div>
-
-          <div>Humidity:</div>
-          <div >35</div>
-        </div>
-
-        <div class='mt-2 flex justify-between text-xs'>
-          <div class='text-slate-100'>
-            Room 5
-          </div>
-          <div class='text-red-800'>
-            Sensor desactivated
-          </div>
-        </div>
-      </div>
-      <div class='bg-slate-200/70 rounded-md p-4'>6</div>
-      <div class='bg-red-300 rounded-md p-4'>
-        <div class='grid grid-cols-2 font-semibold'>
-          <div>Temperature:</div>
-          <div >30 °C</div>
-
-          <div>Humidity:</div>
-          <div >32</div>
-        </div>
-
-        <div class='mt-2 flex justify-between text-xs'>
-          <div class='text-slate-100'>
-            Room 7
-          </div>
-          <div class='text-[#209a37]/80'>
-            Sensor activated
-          </div>
-        </div>
-      </div>
-      <div class='bg-slate-200/70 rounded-md p-4'>8</div>
+      {/each}
     </div>
   </div>
   <div class='mt-12 text-xs custom-grid'>
@@ -117,7 +95,7 @@
     <div class='font-semibold'>Sensor desactivated</div>
     <div>: sensor has stop sending data for more than 3 minutes</div>
 
-    <div class='bg-red-300 h-3 rounded-sm'></div>
-    <div>: Temperature over 28 °C</div>
+    <!--<div class='bg-red-300 h-3 rounded-sm'></div>
+    <div>: Temperature over 28 °C</div>-->
   </div>
 </div>
