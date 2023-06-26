@@ -70,7 +70,7 @@ With that in place, the username-password method should redirect you automatical
 
 ### Azure Active Directory
 
-If you do not know how to register an application in Azure Portal, then I recommend you following the next tutorial: <a href="https://microsoft.github.io/MicrosoftCloud/tutorials/docs/Authentication-App-With-NextJs-And-Microsoft-Graph/Configuring-Application-Azure-Active-Directory">https://microsoft.github.io/MicrosoftCloud/tutorials/docs/Authentication-App-With-NextJs-And-Microsoft-Graph/Configuring-Application-Azure-Active-Directory</a>
+If you do not know how to register an application in Azure Portal, then I recommend you to follow the next tutorial: <a href="https://microsoft.github.io/MicrosoftCloud/tutorials/docs/Authentication-App-With-NextJs-And-Microsoft-Graph/Configuring-Application-Azure-Active-Directory">https://microsoft.github.io/MicrosoftCloud/tutorials/docs/Authentication-App-With-NextJs-And-Microsoft-Graph/Configuring-Application-Azure-Active-Directory</a>
 
 For **redirect uris**, you can use:
 - http://localhost:5173/auth/callback/azure-ad
