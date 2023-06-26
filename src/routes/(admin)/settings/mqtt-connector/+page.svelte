@@ -12,7 +12,7 @@
 
   let url = data.broker.url
   let port = data.broker.port
-  let portType = data.broker.portType
+ // let portType = data.broker.portType
 
   async function handleOnConnector() {
     spinner = true
@@ -26,7 +26,7 @@
       body: JSON.stringify({
         url,
         port,
-        portType
+        portType: "websocket"
       }),
     })
 
@@ -55,7 +55,7 @@
   </div>
   <input bind:value={port} type='text' class='mt-1 w-2/5 block border border-slate-300 rounded-sm p-2 font-medium focus:outline-none' />
 
-  <div class='mt-4 text-sm text-slate-400 font-medium'>
+  <!--<div class='mt-4 text-sm text-slate-400 font-medium'>
     port type
   </div>
   <div class='mt-2 text-sm text-slate-600 font-medium'>
@@ -74,7 +74,7 @@
       bind:group={portType}
     />
     <span class="ml-2">TCP</span>
-  </div>
+  </div>-->
 
   <div class='flex gap-2 mt-8'>
     <button on:click={handleOnConnector} class="w-1/6 rounded-md p-2 bg-blue-500/90 text-white hover:bg-blue-500">Add</button>

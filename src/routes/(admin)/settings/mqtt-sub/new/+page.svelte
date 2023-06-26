@@ -4,7 +4,7 @@
   import { handleAsyncReq } from '$lib/js/makeRequest.svelte';
   import { onMount } from 'svelte';
   import { Toasts, toast } from 'svoast';
-  import mqtt_client from 'u8-mqtt'
+  import mqtt_client from 'u8-mqtt/esm/web/index.js'
 
   export let data
   let title = data.topics.title

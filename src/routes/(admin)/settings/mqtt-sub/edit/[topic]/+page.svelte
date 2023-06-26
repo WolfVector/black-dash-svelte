@@ -5,7 +5,7 @@
   import { onMount } from 'svelte';
   import { Toasts, toast } from 'svoast';
   import Modal from '$lib/components/Modal.svelte';
-  import mqtt_client from 'u8-mqtt'
+  import mqtt_client from 'u8-mqtt/esm/web/index.js'
 
   export let data
   let title = data.topics.title

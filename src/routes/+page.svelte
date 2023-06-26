@@ -1,15 +1,17 @@
 <script>
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { page } from "$app/stores"
+  import { browser } from '$app/environment';
   import TopBar from "./TopBar.svelte";
-  import mqtt_client from 'u8-mqtt'
+  import mqtt_client from 'u8-mqtt/esm/web/index.js'
 
   export let data
 
-  let name = $page.data.session.user.name
+  let name = $page.data.session?.user?.name || ''
   let my_mqtt = null
   let topicList = [] // To keep the order of the topics
   let topicsObject = {} // To save the data 
+  let timeoutList = new Set()
 
   onMount(async () => {
     if(data.broker !== "no-mqtt") {
@@ -35,10 +37,13 @@
           topicsObject[topic.topic].activated = false
         }, 180000) // 180000 = 3 minutos
 
+        timeoutList.add(idInterval)
+
         my_mqtt.subscribe_topic(
         topic.topic,
         async (pkt, params, ctx) => {
           clearTimeout(idInterval)
+          timeoutList.delete(idInterval)
           let mqttData = await pkt.json()
           
           Object.keys(mqttData).forEach(key => {
@@ -50,10 +55,20 @@
 
           idInterval = setTimeout(function() {
             topicsObject[pkt.topic].activated = false
-          }, 180000) // 180000 = 3 minutos
+          }, 30000) // 30000 = 30 segundos
         
         })
+
       });
+    }
+  })
+
+  onDestroy(() => {
+    if(browser) {
+      my_mqtt.disconnect()
+      timeoutList.forEach(key => {
+        clearTimeout(key)
+      })
     }
   })
 
@@ -93,7 +108,7 @@
     <div>: sensor is sending data</div>
     
     <div class='font-semibold'>Sensor desactivated</div>
-    <div>: sensor has stop sending data for more than 3 minutes</div>
+    <div>: sensor has stop sending data for more than 30 seconds</div>
 
     <!--<div class='bg-red-300 h-3 rounded-sm'></div>
     <div>: Temperature over 28 °C</div>-->

@@ -38,6 +38,7 @@ export const authOptions = {
     /* Page where we will show our custom signin page  */
     signIn: '/login'
   },
+  trustHost: true,
   callbacks: {
     async jwt({ token, trigger, user, session, account  }) {
       if(trigger === "update" && session?.email) token.email = session.email
@@ -68,6 +69,8 @@ export const authOptions = {
 }
 
 async function authorization({ event, resolve }) {
+  //console.log(event.url.protocol)
+
   // Protect any routes under /settings
   if (event.url.pathname.startsWith("/settings")) {
     const session = await event.locals.getSession();

@@ -5,7 +5,7 @@
 
 <div class='flex justify-between mr-1'>
   <div class='text-2xl font-semibold'>
-      <a href="/">{title}</a>
+      <a href="/" target="_self">{title}</a>
   </div>
   <img
     src={logo}

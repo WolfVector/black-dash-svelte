@@ -10,7 +10,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// The admin table is going to have a default admin. This admin is going to always be there (altough you can delete it directly)
+// The admin table is going to have a default admin. This admin is going to always be there (altough you can delete it)
+
+// TODO:
 // You will have the option to disable the login form and access using SSO, but again, this will not delete the default admin
 // It just means that is going to be disabled
 model Admin {
@@ -25,10 +27,10 @@ model Admin {
 
 model AdminSettings {
   id                  String  @id @default(uuid())
-  microsoftSSO        Boolean // If true, then you will be able to access the admin panel using SSO
-  credentialsProvider Boolean // If true, then you will have the option to log in without SSO
+  microsoftSSO        Boolean // TODO: If true, then you will be able to access the admin panel using SSO
+  credentialsProvider Boolean // TODO: If true, then you will have the option to log in without SSO
 
-  // If true, then you will only be able to access the admin panel through the server (localhost)
+  // TODO: If true, then you will only be able to access the admin panel through the server (localhost)
   ipRestricted Boolean
 
   createdAt DateTime @default(now())
@@ -54,9 +56,6 @@ model MqttTopic {
   title     String
   topic     String       @unique
   keyFields MqttFields[]
-  //keyField   MqttFields[] @relation("keyField")
-  //fieldTitle MqttFields[] @relation("fieldTitle")
-  //fieldUnits MqttFields[] @relation("fieldUnits")
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 

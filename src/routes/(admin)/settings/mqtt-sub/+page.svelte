@@ -50,7 +50,7 @@
 
 <Toasts position="top-right" />
 <div class="flex justify-end">
-  <a href="/settings/mqtt-sub/new" class="p-2 rounded-md bg-blue-400 text-white">New subscriber</a>
+  <a href="/settings/mqtt-sub/new" target="_self" class="p-2 rounded-md bg-blue-400 text-white">New subscriber</a>
 </div>
 <table class="mt-8 w-full divide-y divide-gray-200">
   <thead class="text-sm">
@@ -64,7 +64,7 @@
     {#each data.topics as topic}
       <tr class="odd:bg-white even:bg-gray-50">
         <td class="px-2 py-3">{ topic.topic }</td>
-        <td class="py-3 align-middle text-center"> <a href="/settings/mqtt-sub/edit/{topic.id}"  class="px-2 py-1 rounded-md bg-amber-400/60 text-white">Edit</a> </td>
+        <td class="py-3 align-middle text-center"> <a href="/settings/mqtt-sub/edit/{topic.id}" target="_self"  class="px-2 py-1 rounded-md bg-amber-400/60 text-white">Edit</a> </td>
         <td class="py-3 align-middle text-center"> <button on:click={() => handleTopicDelete(topic.topic)} class="px-2 py-1 rounded-md bg-red-400 text-white">Delete</button> </td>
       </tr>
     {/each}
