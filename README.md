@@ -101,7 +101,7 @@ Go to <a href="http://localhost:5173/">localhost:3000</a>
 
 ## More features comming soon
 
-There are still some thing to implement, for example:
+There are still some things to implement, for example:
 
 - **Login** settings
     - Allow to disable the user-password method
