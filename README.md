@@ -99,6 +99,17 @@ Go to your `.env` file and define the variables `AUTH_URL`, `AUTH_TRUST_HOST` an
 
 Go to <a href="http://localhost:5173/">localhost:3000</a>
 
+## More features comming soon
+
+There are still some thing to implement, for example:
+
+- **Login** settings
+    - Allow to disable the user-password method
+    - Allow to disable the Azure Active Directory method
+- Allow the creation of sections, in this way, you will be able to organize the subscribers in different pages 
+
+I'm open to suggestions too.
+
 ## Bugs/Help
 
-If you need any help, you can open an issue :)
+If you need any help or suggestion, you can open an issue :)
